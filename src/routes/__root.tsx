@@ -79,10 +79,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Subito Self Wash 24h — Πλυντήριο Αυτοκινήτων στην Αθήνα" },
-      { name: "description", content: "Self service πλυντήριο αυτοκινήτων 24 ώρες στην Πειραιώς 185, Αθήνα. Κλείστε ραντεβού ή ζητήστε προσφορά." },
+      {
+        name: "description",
+        content:
+          "Self service πλυντήριο αυτοκινήτων 24 ώρες στην Πειραιώς 185, Αθήνα. Κλείστε ραντεβού ή ζητήστε προσφορά.",
+      },
       { name: "author", content: "Subito Self Wash 24h" },
       { property: "og:title", content: "Subito Self Wash 24h — Πλυντήριο Αυτοκινήτων στην Αθήνα" },
-      { property: "og:description", content: "Self service πλυντήριο αυτοκινήτων 24 ώρες στην Πειραιώς 185, Αθήνα." },
+      {
+        property: "og:description",
+        content: "Self service πλυντήριο αυτοκινήτων 24 ώρες στην Πειραιώς 185, Αθήνα.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@SubitoSelfWash" },

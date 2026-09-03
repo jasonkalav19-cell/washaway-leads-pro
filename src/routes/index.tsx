@@ -30,7 +30,8 @@ import heroImage from "@/assets/hero-wash.jpg";
 const PHONE_DISPLAY = "21 6070 4593";
 const PHONE_TEL = "+302160704593";
 const ADDRESS = "Πειραιώς 185, Αθήνα 118 53";
-const MAPS_URL = "https://www.google.com/maps/search/?api=1&query=Subito+Self+Wash+24h+Πειραιώς+185+Αθήνα";
+const MAPS_URL =
+  "https://www.google.com/maps/search/?api=1&query=Subito+Self+Wash+24h+Πειραιώς+185+Αθήνα";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -270,9 +271,7 @@ const bookingSchema = z.object({
   vehicleType: z.enum(["Ι.Χ.", "Μηχανή", "SUV / Van"], {
     message: "Επιλέξτε τύπο οχήματος",
   }),
-  services: z
-    .array(z.string())
-    .min(1, "Επιλέξτε τουλάχιστον μία υπηρεσία"),
+  services: z.array(z.string()).min(1, "Επιλέξτε τουλάχιστον μία υπηρεσία"),
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -401,9 +400,7 @@ function BookingSection() {
                 className="h-11 rounded-lg border border-input bg-secondary px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 {...register("phone")}
               />
-              {errors.phone && (
-                <p className="text-xs text-destructive">{errors.phone.message}</p>
-              )}
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
             </div>
 
             <div className="grid gap-1.5">
@@ -525,8 +522,8 @@ function Index() {
               Self Wash πλυντήριο αυτοκινήτων στην Πειραιώς
             </h1>
             <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Επαγγελματικός εξοπλισμός, αφρός πρόπλυσης, κερί νανοτεχνολογίας και προσωπικό που
-              σας εξυπηρετεί οποιαδήποτε ώρα της μέρας ή της νύχτας.
+              Επαγγελματικός εξοπλισμός, αφρός πρόπλυσης, κερί νανοτεχνολογίας και προσωπικό που σας
+              εξυπηρετεί οποιαδήποτε ώρα της μέρας ή της νύχτας.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <CallButton />
@@ -679,7 +676,9 @@ function Index() {
       <footer className="border-t border-border bg-card">
         <div className="mx-auto max-w-6xl px-4 py-10 text-sm text-muted-foreground">
           <p className="font-semibold text-foreground">Subito Self Wash 24h</p>
-          <p className="mt-1">{ADDRESS} · Ανοιχτά 24 ώρες · {PHONE_DISPLAY}</p>
+          <p className="mt-1">
+            {ADDRESS} · Ανοιχτά 24 ώρες · {PHONE_DISPLAY}
+          </p>
           <p className="mt-4 text-xs">
             © {new Date().getFullYear()} Subito Self Wash 24h. Πλυντήριο αυτοκινήτων self service
             στην Αθήνα.
