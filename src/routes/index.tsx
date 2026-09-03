@@ -468,7 +468,7 @@ function Index() {
         </div>
       </section>
 
-      {/* Services + form */}
+      {/* Services + CTA */}
       <section id="services" className="mx-auto max-w-6xl px-4 py-16">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
           <div>
@@ -491,7 +491,34 @@ function Index() {
             </div>
           </div>
           <div id="quote" className="lg:sticky lg:top-24 lg:self-start">
-            <QuoteForm />
+            <div
+              className="rounded-2xl border border-border bg-card p-6 text-center sm:p-8"
+              style={{ boxShadow: "var(--shadow-card)" }}
+            >
+              <h3 className="text-xl font-semibold">Ζητήστε προσφορά τώρα</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Συμπληρώστε τα στοιχεία σας και θα επικοινωνήσουμε μαζί σας άμεσα.
+              </p>
+              <div className="mt-6 flex flex-col gap-3">
+                <a
+                  href="#booking"
+                  className="inline-flex h-12 items-center justify-center rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100"
+                  style={{ backgroundImage: "var(--gradient-cta)", boxShadow: "var(--shadow-glow)" }}
+                >
+                  Αίτηση Προσφοράς / Κράτηση
+                </a>
+                <a
+                  href={`tel:${PHONE_TEL}`}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-border text-base font-semibold transition-colors hover:bg-secondary"
+                >
+                  <Phone className="size-5" />
+                  {PHONE_DISPLAY}
+                </a>
+              </div>
+              <p className="mt-4 text-center text-xs text-muted-foreground">
+                Απάντηση συνήθως εντός λίγων λεπτών · Ανοιχτά 24/7
+              </p>
+            </div>
           </div>
         </div>
       </section>
