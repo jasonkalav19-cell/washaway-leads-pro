@@ -673,6 +673,8 @@ function Index() {
         </div>
       </section>
 
+      <BookingSection />
+
       {/* Footer */}
       <footer className="border-t border-border bg-card">
         <div className="mx-auto max-w-6xl px-4 py-10 text-sm text-muted-foreground">
