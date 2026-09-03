@@ -299,6 +299,7 @@ function BookingSection() {
     defaultValues: {
       fullName: "",
       phone: "",
+      vehicleType: "" as BookingFormData["vehicleType"],
       services: [],
     },
   });
