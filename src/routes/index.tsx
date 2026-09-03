@@ -409,7 +409,7 @@ function BookingSection() {
                 Τύπος Οχήματος <span className="text-destructive">*</span>
               </label>
               <Select
-                value={selectedVehicle}
+                value={selectedVehicle || ""}
                 onValueChange={(value) =>
                   setValue("vehicleType", value as BookingFormData["vehicleType"], {
                     shouldValidate: true,
