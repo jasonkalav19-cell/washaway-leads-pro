@@ -13,12 +13,25 @@ import {
   CircleDollarSign,
   CheckCircle2,
 } from "lucide-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import heroImage from "@/assets/hero-wash.jpg";
 
 const PHONE_DISPLAY = "21 6070 4593";
 const PHONE_TEL = "+302160704593";
 const ADDRESS = "Πειραιώς 185, Αθήνα 118 53";
-const MAPS_URL = "https://www.google.com/maps/search/?api=1&query=Subito+Self+Wash+24h+Πειραιώς+185+Αθήνα";
+const MAPS_URL =
+  "https://www.google.com/maps/search/?api=1&query=Subito+Self+Wash+24h+Πειραιώς+185+Αθήνα";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -147,99 +160,225 @@ function CallButton({ className = "" }: { className?: string }) {
   );
 }
 
-function QuoteForm() {
-  const [sent, setSent] = useState(false);
+const bookingSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "Το ονοματεπώνυμο είναι υποχρεωτικό")
+    .max(100, "Το ονοματεπώνυμο πρέπει να είναι έως 100 χαρακτήρες"),
+  phone: z
+    .string()
+    .trim()
+    .min(10, "Συμπληρώστε έγκυρο τηλέφωνο")
+    .max(20, "Το τηλέφωνο πρέπει να είναι έως 20 χαρακτήρες")
+    .regex(/^[0-9+\s()-]+$/, "Μη έγκυρος αριθμός τηλεφώνου"),
+  vehicleType: z.enum(["Ι.Χ.", "Μηχανή", "SUV / Van"], {
+    message: "Επιλέξτε τύπο οχήματος",
+  }),
+  services: z.array(z.string()).min(1, "Επιλέξτε τουλάχιστον μία υπηρεσία"),
+});
 
-  if (sent) {
+type BookingFormData = z.infer<typeof bookingSchema>;
+
+const vehicleOptions = ["Ι.Χ.", "Μηχανή", "SUV / Van"] as const;
+
+const serviceOptions = [
+  { id: "prewash", label: "Αφρός Πρόπλυσης" },
+  { id: "nano", label: "Κερί Νανοτεχνολογίας" },
+  { id: "rims", label: "Υγρό Ζαντών" },
+  { id: "bio", label: "Βιολογικός/Σκούπα" },
+];
+
+function BookingSection() {
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<BookingFormData>({
+    resolver: zodResolver(bookingSchema),
+    defaultValues: {
+      fullName: "",
+      phone: "",
+      vehicleType: "" as BookingFormData["vehicleType"],
+      services: [],
+    },
+  });
+
+  const selectedServices = watch("services") || [];
+  const selectedVehicle = watch("vehicleType");
+
+  const toggleService = (serviceId: string) => {
+    const next = selectedServices.includes(serviceId)
+      ? selectedServices.filter((s) => s !== serviceId)
+      : [...selectedServices, serviceId];
+    setValue("services", next, { shouldValidate: true });
+  };
+
+  const onSubmit = (data: BookingFormData) => {
+    // TODO: replace with server function when backend is connected
+    console.log("Booking request:", data);
+    setIsSubmitted(true);
+    toast.success("Λάβαμε την αίτησή σας!", {
+      description: "Θα επικοινωνήσουμε μαζί σας το συντομότερο.",
+    });
+  };
+
+  if (isSubmitted) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-8 text-center">
-        <CheckCircle2 className="mx-auto size-10 text-accent" />
-        <h3 className="mt-4 text-xl font-semibold">Λάβαμε το αίτημά σας!</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Θα επικοινωνήσουμε μαζί σας το συντομότερο. Για άμεση εξυπηρέτηση καλέστε μας.
-        </p>
-        <div className="mt-6">
-          <CallButton />
+      <section id="booking" className="border-y border-border bg-card/50 py-16">
+        <div className="mx-auto max-w-6xl px-4">
+          <div
+            className="rounded-2xl border border-border bg-card p-8 text-center sm:p-10"
+            style={{ boxShadow: "var(--shadow-card)" }}
+          >
+            <CheckCircle2 className="mx-auto size-12 text-accent" />
+            <h2 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
+              Ευχαριστούμε για την αίτησή σας!
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-muted-foreground">
+              Λάβαμε τα στοιχεία σας και θα σας καλέσουμε σύντομα για επιβεβαίωση.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setIsSubmitted(false);
+                reset();
+              }}
+              className="mt-6 inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold transition-colors hover:bg-secondary"
+            >
+              Νέα αίτηση
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        setSent(true);
-      }}
-      className="rounded-2xl border border-border bg-card p-6 sm:p-8"
-      style={{ boxShadow: "var(--shadow-card)" }}
-    >
-      <h3 className="text-xl font-semibold">Ζητήστε προσφορά</h3>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Συμπληρώστε τα στοιχεία σας και σας καλούμε εμείς.
-      </p>
-      <div className="mt-5 grid gap-4">
-        <div className="grid gap-1.5">
-          <label htmlFor="name" className="text-sm font-medium">
-            Ονοματεπώνυμο
-          </label>
-          <input
-            id="name"
-            required
-            className="h-11 rounded-lg border border-input bg-secondary px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            placeholder="Γιώργος Παπαδόπουλος"
-          />
+    <section id="booking" className="border-y border-border bg-card/50 py-16">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Αίτηση Προσφοράς / Κράτηση
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Συμπληρώστε τα στοιχεία σας και θα επικοινωνήσουμε μαζί σας άμεσα.
+          </p>
         </div>
-        <div className="grid gap-1.5">
-          <label htmlFor="phone" className="text-sm font-medium">
-            Τηλέφωνο
-          </label>
-          <input
-            id="phone"
-            type="tel"
-            required
-            className="h-11 rounded-lg border border-input bg-secondary px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            placeholder="69XXXXXXXX"
-          />
-        </div>
-        <div className="grid gap-1.5">
-          <label htmlFor="service" className="text-sm font-medium">
-            Υπηρεσία
-          </label>
-          <select
-            id="service"
-            className="h-11 rounded-lg border border-input bg-secondary px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option>Self wash πλύσιμο</option>
-            <option>Κέρωμα νανοτεχνολογίας</option>
-            <option>Βιολογικός καθαρισμός</option>
-            <option>Καθαρισμός ζαντών</option>
-            <option>Άλλο</option>
-          </select>
-        </div>
-        <div className="grid gap-1.5">
-          <label htmlFor="msg" className="text-sm font-medium">
-            Σχόλια (προαιρετικά)
-          </label>
-          <textarea
-            id="msg"
-            rows={3}
-            className="rounded-lg border border-input bg-secondary p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            placeholder="Τύπος οχήματος, κατάσταση, προτιμώμενη ώρα..."
-          />
-        </div>
-        <button
-          type="submit"
-          className="h-12 rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01]"
-          style={{ backgroundImage: "var(--gradient-cta)", boxShadow: "var(--shadow-glow)" }}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="mx-auto mt-8 max-w-2xl rounded-2xl border border-border bg-card p-6 sm:p-8"
+          style={{ boxShadow: "var(--shadow-card)" }}
+          noValidate
         >
-          Στείλτε το αίτημα
-        </button>
-        <p className="text-center text-xs text-muted-foreground">
-          Απάντηση συνήθως εντός λίγων λεπτών · Ανοιχτά 24/7
-        </p>
+          <div className="grid gap-5">
+            <div className="grid gap-1.5">
+              <label htmlFor="fullName" className="text-sm font-medium">
+                Ονοματεπώνυμο <span className="text-destructive">*</span>
+              </label>
+              <input
+                id="fullName"
+                type="text"
+                autoComplete="name"
+                placeholder="Γιώργος Παπαδόπουλος"
+                className="h-11 rounded-lg border border-input bg-secondary px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                {...register("fullName")}
+              />
+              {errors.fullName && (
+                <p className="text-xs text-destructive">{errors.fullName.message}</p>
+              )}
+            </div>
+
+            <div className="grid gap-1.5">
+              <label htmlFor="phone" className="text-sm font-medium">
+                Τηλέφωνο <span className="text-destructive">*</span>
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="69XXXXXXXX"
+                className="h-11 rounded-lg border border-input bg-secondary px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                {...register("phone")}
+              />
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+            </div>
+
+            <div className="grid gap-1.5">
+              <label htmlFor="vehicleType" className="text-sm font-medium">
+                Τύπος Οχήματος <span className="text-destructive">*</span>
+              </label>
+              <Select
+                value={selectedVehicle || ""}
+                onValueChange={(value) =>
+                  setValue("vehicleType", value as BookingFormData["vehicleType"], {
+                    shouldValidate: true,
+                  })
+                }
+              >
+                <SelectTrigger
+                  id="vehicleType"
+                  className="h-11 rounded-lg border-input bg-secondary px-3 text-sm focus:ring-2 focus:ring-ring"
+                >
+                  <SelectValue placeholder="Επιλέξτε τύπο οχήματος" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vehicleOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.vehicleType && (
+                <p className="text-xs text-destructive">{errors.vehicleType.message}</p>
+              )}
+            </div>
+
+            <div className="grid gap-2">
+              <span className="text-sm font-medium">
+                Επιλογή Υπηρεσίας <span className="text-destructive">*</span>
+              </span>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {serviceOptions.map(({ id, label }) => (
+                  <label
+                    key={id}
+                    htmlFor={id}
+                    className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-secondary p-3 transition-colors hover:border-primary/50"
+                  >
+                    <Checkbox
+                      id={id}
+                      checked={selectedServices.includes(id)}
+                      onCheckedChange={() => toggleService(id)}
+                      className="mt-0.5"
+                    />
+                    <span className="text-sm">{label}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.services && (
+                <p className="text-xs text-destructive">{errors.services.message}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="mt-2 h-12 rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100"
+              style={{ backgroundImage: "var(--gradient-cta)", boxShadow: "var(--shadow-glow)" }}
+            >
+              Αποστολή Αίτησης
+            </button>
+            <p className="text-center text-xs text-muted-foreground">
+              Απάντηση συνήθως εντός λίγων λεπτών · Ανοιχτά 24/7
+            </p>
+          </div>
+        </form>
       </div>
-    </form>
+    </section>
   );
 }
 
@@ -288,8 +427,8 @@ function Index() {
               Self Wash πλυντήριο αυτοκινήτων στην Πειραιώς
             </h1>
             <p className="mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Επαγγελματικός εξοπλισμός, αφρός πρόπλυσης, κερί νανοτεχνολογίας και προσωπικό που
-              σας εξυπηρετεί οποιαδήποτε ώρα της μέρας ή της νύχτας.
+              Επαγγελματικός εξοπλισμός, αφρός πρόπλυσης, κερί νανοτεχνολογίας και προσωπικό που σας
+              εξυπηρετεί οποιαδήποτε ώρα της μέρας ή της νύχτας.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <CallButton />
@@ -329,7 +468,7 @@ function Index() {
         </div>
       </section>
 
-      {/* Services + form */}
+      {/* Services + CTA */}
       <section id="services" className="mx-auto max-w-6xl px-4 py-16">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
           <div>
@@ -352,7 +491,34 @@ function Index() {
             </div>
           </div>
           <div id="quote" className="lg:sticky lg:top-24 lg:self-start">
-            <QuoteForm />
+            <div
+              className="rounded-2xl border border-border bg-card p-6 text-center sm:p-8"
+              style={{ boxShadow: "var(--shadow-card)" }}
+            >
+              <h3 className="text-xl font-semibold">Ζητήστε προσφορά τώρα</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Συμπληρώστε τα στοιχεία σας και θα επικοινωνήσουμε μαζί σας άμεσα.
+              </p>
+              <div className="mt-6 flex flex-col gap-3">
+                <a
+                  href="#booking"
+                  className="inline-flex h-12 items-center justify-center rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100"
+                  style={{ backgroundImage: "var(--gradient-cta)", boxShadow: "var(--shadow-glow)" }}
+                >
+                  Αίτηση Προσφοράς / Κράτηση
+                </a>
+                <a
+                  href={`tel:${PHONE_TEL}`}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-border text-base font-semibold transition-colors hover:bg-secondary"
+                >
+                  <Phone className="size-5" />
+                  {PHONE_DISPLAY}
+                </a>
+              </div>
+              <p className="mt-4 text-center text-xs text-muted-foreground">
+                Απάντηση συνήθως εντός λίγων λεπτών · Ανοιχτά 24/7
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -436,11 +602,15 @@ function Index() {
         </div>
       </section>
 
+      <BookingSection />
+
       {/* Footer */}
       <footer className="border-t border-border bg-card">
         <div className="mx-auto max-w-6xl px-4 py-10 text-sm text-muted-foreground">
           <p className="font-semibold text-foreground">Subito Self Wash 24h</p>
-          <p className="mt-1">{ADDRESS} · Ανοιχτά 24 ώρες · {PHONE_DISPLAY}</p>
+          <p className="mt-1">
+            {ADDRESS} · Ανοιχτά 24 ώρες · {PHONE_DISPLAY}
+          </p>
           <p className="mt-4 text-xs">
             © {new Date().getFullYear()} Subito Self Wash 24h. Πλυντήριο αυτοκινήτων self service
             στην Αθήνα.
