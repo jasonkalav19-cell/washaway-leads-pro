@@ -270,6 +270,21 @@ function BookingSection() {
     setValue("services", next, { shouldValidate: true });
   };
 
+  // Pre-check a service when dispatched from a service card modal CTA
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const serviceId = (event as CustomEvent<string>).detail;
+      if (!serviceId) return;
+      setIsSubmitted(false);
+      const current = (watch("services") || []) as string[];
+      if (!current.includes(serviceId)) {
+        setValue("services", [...current, serviceId], { shouldValidate: true });
+      }
+    };
+    window.addEventListener(SERVICE_SELECT_EVENT, handler);
+    return () => window.removeEventListener(SERVICE_SELECT_EVENT, handler);
+  }, [setValue, watch]);
+
   const onSubmit = (data: BookingFormData) => {
     // TODO: replace with server function when backend is connected
     console.log("Booking request:", data);
@@ -529,16 +544,8 @@ function Index() {
               Όλα όσα χρειάζεστε για να λάμψει το αυτοκίνητό σας, σε μία στάση.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {services.map(({ icon: Icon, title, text }) => (
-                <article
-                  key={title}
-                  className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/50"
-                  style={{ boxShadow: "var(--shadow-card)" }}
-                >
-                  <Icon className="size-7 text-primary" />
-                  <h3 className="mt-3 text-lg font-semibold">{title}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{text}</p>
-                </article>
+              {services.map((service) => (
+                <ServiceCard key={service.id} service={service} />
               ))}
             </div>
           </div>
