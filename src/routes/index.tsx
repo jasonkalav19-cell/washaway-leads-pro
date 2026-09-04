@@ -171,6 +171,96 @@ const services = [
   },
 ];
 
+type Service = (typeof services)[number];
+
+function ServiceCard({ service }: { service: Service }) {
+  const [open, setOpen] = useState(false);
+  const { icon: Icon, title, text, price, duration, process, benefits, id } = service;
+
+  const handleSelect = () => {
+    setOpen(false);
+    // Wait for the dialog close animation before scrolling
+    window.setTimeout(() => {
+      document.getElementById("booking")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.dispatchEvent(new CustomEvent<string>(SERVICE_SELECT_EVENT, { detail: id }));
+    }, 150);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <article
+          role="button"
+          tabIndex={0}
+          className="cursor-pointer rounded-2xl border border-border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/60"
+          style={{ boxShadow: "var(--shadow-card)" }}
+        >
+          <Icon className="size-7 text-primary" />
+          <h3 className="mt-3 text-lg font-semibold">{title}</h3>
+          <p className="mt-1.5 text-sm text-muted-foreground">{text}</p>
+          <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+            Δείτε λεπτομέρειες
+          </span>
+        </article>
+      </DialogTrigger>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-card-foreground sm:max-w-lg">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary/15">
+              <Icon className="size-6 text-primary" />
+            </span>
+            <DialogTitle className="text-xl font-bold sm:text-2xl">{title}</DialogTitle>
+          </div>
+          <DialogDescription className="pt-2 text-sm text-muted-foreground">
+            {text}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-2 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-semibold">
+            <Euro className="size-3.5 text-accent" /> {price}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-semibold">
+            <Timer className="size-3.5 text-accent" /> Διάρκεια: {duration}
+          </span>
+        </div>
+
+        <div className="mt-4">
+          <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Η διαδικασία βήμα-βήμα
+          </h4>
+          <ol className="mt-3 grid gap-2.5">
+            {process.map((step, index) => (
+              <li key={step} className="flex items-start gap-3 text-sm">
+                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+                  {index + 1}
+                </span>
+                <span className="min-w-0 pt-0.5">{step}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-border bg-secondary/60 p-4">
+          <h4 className="flex items-center gap-2 text-sm font-semibold">
+            <ShieldCheck className="size-4 shrink-0 text-accent" /> Οφέλη για το όχημά σας
+          </h4>
+          <p className="mt-2 text-sm text-muted-foreground">{benefits}</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSelect}
+          className="mt-5 h-12 w-full rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100"
+          style={{ backgroundImage: "var(--gradient-cta)", boxShadow: "var(--shadow-glow)" }}
+        >
+          Επιλογή για Αίτηση
+        </button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 const reviews = [
   {
     name: "Manthos Pappas",
