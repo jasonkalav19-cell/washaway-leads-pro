@@ -331,15 +331,18 @@ const serviceOptions = [
   { id: "bio", label: "Βιολογικός/Σκούπα" },
 ];
 
+const WEB3FORMS_ACCESS_KEY = "92cf3ad6-9bf1-45b6-8ad9-bdf54cb1b55e";
+
 function BookingSection() {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     setValue,
     watch,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
@@ -375,13 +378,46 @@ function BookingSection() {
     return () => window.removeEventListener(SERVICE_SELECT_EVENT, handler);
   }, [setValue, watch]);
 
-  const onSubmit = (data: BookingFormData) => {
-    // TODO: replace with server function when backend is connected
-    console.log("Booking request:", data);
-    setIsSubmitted(true);
-    toast.success("Λάβαμε την αίτησή σας!", {
-      description: "Θα επικοινωνήσουμε μαζί σας το συντομότερο.",
-    });
+  const onSubmit = async (data: BookingFormData) => {
+    setSubmitError(null);
+    try {
+      const serviceLabels = data.services.map(
+        (id) => serviceOptions.find((s) => s.id === id)?.label ?? id,
+      );
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: "Νέα Αίτηση Προσφοράς — Subito Self Wash 24h",
+          name: data.fullName,
+          email: "info@subitoselfwash.gr",
+          phone: data.phone,
+          vehicle_type: data.vehicleType,
+          services: serviceLabels.join(", "),
+        }),
+      });
+      const result = (await response.json().catch(() => null)) as
+        | { success?: boolean }
+        | null;
+      if (!response.ok || !result?.success) {
+        throw new Error("Web3Forms rejected the request");
+      }
+      setIsSubmitted(true);
+      toast.success("Λάβαμε την αίτησή σας!", {
+        description: "Θα επικοινωνήσουμε μαζί σας το συντομότερο.",
+      });
+    } catch {
+      setSubmitError(
+        "Η αποστολή απέτυχε. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά, ή καλέστε μας απευθείας.",
+      );
+      toast.error("Η αποστολή απέτυχε", {
+        description: "Παρακαλώ δοκιμάστε ξανά ή καλέστε μας.",
+      });
+    }
   };
 
   if (isSubmitted) {
