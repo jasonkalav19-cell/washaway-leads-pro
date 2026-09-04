@@ -392,9 +392,7 @@ function BookingSection() {
       body.append("vehicle_type", data.vehicleType);
       body.append("services", serviceLabels.join(", "));
       const response = await fetch(WEB3FORMS_ENDPOINT, { method: "POST", body });
-      const result = (await response.json().catch(() => null)) as
-        | { success?: boolean }
-        | null;
+      const result = (await response.json().catch(() => null)) as { success?: boolean } | null;
       if (!response.ok || !result?.success) {
         throw new Error("Web3Forms rejected the request");
       }
