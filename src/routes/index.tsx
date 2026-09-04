@@ -503,7 +503,10 @@ function Index() {
                 <a
                   href="#booking"
                   className="inline-flex h-12 items-center justify-center rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100"
-                  style={{ backgroundImage: "var(--gradient-cta)", boxShadow: "var(--shadow-glow)" }}
+                  style={{
+                    backgroundImage: "var(--gradient-cta)",
+                    boxShadow: "var(--shadow-glow)",
+                  }}
                 >
                   Αίτηση Προσφοράς / Κράτηση
                 </a>
