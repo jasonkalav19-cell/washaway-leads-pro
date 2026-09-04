@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import heroImage from "@/assets/hero-wash.jpg";
+import { WEB3FORMS_ACCESS_KEY, WEB3FORMS_ENDPOINT } from "@/lib/booking.functions";
 
 const PHONE_DISPLAY = "21 6070 4593";
 const PHONE_TEL = "+302160704593";
@@ -333,13 +334,14 @@ const serviceOptions = [
 
 function BookingSection() {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     setValue,
     watch,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
@@ -375,13 +377,37 @@ function BookingSection() {
     return () => window.removeEventListener(SERVICE_SELECT_EVENT, handler);
   }, [setValue, watch]);
 
-  const onSubmit = (data: BookingFormData) => {
-    // TODO: replace with server function when backend is connected
-    console.log("Booking request:", data);
-    setIsSubmitted(true);
-    toast.success("Λάβαμε την αίτησή σας!", {
-      description: "Θα επικοινωνήσουμε μαζί σας το συντομότερο.",
-    });
+  const onSubmit = async (data: BookingFormData) => {
+    setSubmitError(null);
+    try {
+      const serviceLabels = data.services.map(
+        (id) => serviceOptions.find((s) => s.id === id)?.label ?? id,
+      );
+      const body = new FormData();
+      body.append("access_key", WEB3FORMS_ACCESS_KEY);
+      body.append("subject", "Νέα Αίτηση Προσφοράς — Subito Self Wash 24h");
+      body.append("name", data.fullName);
+      body.append("email", "info@subitoselfwash.gr");
+      body.append("phone", data.phone);
+      body.append("vehicle_type", data.vehicleType);
+      body.append("services", serviceLabels.join(", "));
+      const response = await fetch(WEB3FORMS_ENDPOINT, { method: "POST", body });
+      const result = (await response.json().catch(() => null)) as { success?: boolean } | null;
+      if (!response.ok || !result?.success) {
+        throw new Error("Web3Forms rejected the request");
+      }
+      setIsSubmitted(true);
+      toast.success("Λάβαμε την αίτησή σας!", {
+        description: "Θα επικοινωνήσουμε μαζί σας το συντομότερο.",
+      });
+    } catch {
+      setSubmitError(
+        "Η αποστολή απέτυχε. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά, ή καλέστε μας απευθείας.",
+      );
+      toast.error("Η αποστολή απέτυχε", {
+        description: "Παρακαλώ δοκιμάστε ξανά ή καλέστε μας.",
+      });
+    }
   };
 
   if (isSubmitted) {
@@ -522,12 +548,18 @@ function BookingSection() {
               )}
             </div>
 
+            {submitError && (
+              <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {submitError}
+              </p>
+            )}
             <button
               type="submit"
-              className="mt-2 h-12 rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100"
+              disabled={isSubmitting}
+              className="mt-2 h-12 rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100 disabled:cursor-not-allowed disabled:opacity-60"
               style={{ backgroundImage: "var(--gradient-cta)", boxShadow: "var(--shadow-glow)" }}
             >
-              Αποστολή Αίτησης
+              {isSubmitting ? "Αποστολή…" : "Αποστολή Αίτησης"}
             </button>
             <p className="text-center text-xs text-muted-foreground">
               Απάντηση συνήθως εντός λίγων λεπτών · Ανοιχτά 24/7
