@@ -331,8 +331,6 @@ const serviceOptions = [
   { id: "bio", label: "Βιολογικός/Σκούπα" },
 ];
 
-const WEB3FORMS_ACCESS_KEY = "92cf3ad6-9bf1-45b6-8ad9-bdf54cb1b55e";
-
 function BookingSection() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -384,28 +382,14 @@ function BookingSection() {
       const serviceLabels = data.services.map(
         (id) => serviceOptions.find((s) => s.id === id)?.label ?? id,
       );
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
-          subject: "Νέα Αίτηση Προσφοράς — Subito Self Wash 24h",
-          name: data.fullName,
-          email: "info@subitoselfwash.gr",
+      await submitBooking({
+        data: {
+          fullName: data.fullName,
           phone: data.phone,
-          vehicle_type: data.vehicleType,
-          services: serviceLabels.join(", "),
-        }),
+          vehicleType: data.vehicleType,
+          services: serviceLabels,
+        },
       });
-      const result = (await response.json().catch(() => null)) as
-        | { success?: boolean }
-        | null;
-      if (!response.ok || !result?.success) {
-        throw new Error("Web3Forms rejected the request");
-      }
       setIsSubmitted(true);
       toast.success("Λάβαμε την αίτησή σας!", {
         description: "Θα επικοινωνήσουμε μαζί σας το συντομότερο.",
