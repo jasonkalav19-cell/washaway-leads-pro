@@ -558,12 +558,18 @@ function BookingSection() {
               )}
             </div>
 
+            {submitError && (
+              <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {submitError}
+              </p>
+            )}
             <button
               type="submit"
-              className="mt-2 h-12 rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100"
+              disabled={isSubmitting}
+              className="mt-2 h-12 rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100 disabled:cursor-not-allowed disabled:opacity-60"
               style={{ backgroundImage: "var(--gradient-cta)", boxShadow: "var(--shadow-glow)" }}
             >
-              Αποστολή Αίτησης
+              {isSubmitting ? "Αποστολή…" : "Αποστολή Αίτησης"}
             </button>
             <p className="text-center text-xs text-muted-foreground">
               Απάντηση συνήθως εντός λίγων λεπτών · Ανοιχτά 24/7
