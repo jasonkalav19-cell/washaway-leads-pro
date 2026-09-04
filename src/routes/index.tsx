@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Phone,
   MapPin,
@@ -12,12 +12,22 @@ import {
   Wind,
   CircleDollarSign,
   CheckCircle2,
+  Timer,
+  Euro,
 } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -96,28 +106,160 @@ export const Route = createFileRoute("/")({
   }),
 });
 
+const SERVICE_SELECT_EVENT = "subito:select-service";
+
 const services = [
   {
+    id: "prewash",
     icon: Droplets,
     title: "Αφρός Πρόπλυσης",
     text: "Ενεργός αφρός υψηλής πρόσφυσης που διαλύει λάσπη και έντομα χωρίς γρατζουνιές.",
+    price: "Από 2€",
+    duration: "5 λεπτά",
+    process: [
+      "Ψεκασμός πυκνού ενεργού αφρού σε όλο το αμάξωμα με πιστόλι χαμηλής πίεσης.",
+      "Χρόνος δράσης 1–2 λεπτά ώστε να μαλακώσουν λάσπη, έντομα και αλάτι.",
+      "Ξέβγαλμα με υψηλή πίεση, χωρίς επαφή βούρτσας με τη βαφή.",
+    ],
+    benefits:
+      "Αφαιρεί το 80% των ρύπων πριν καν ακουμπήσετε το αμάξωμα, μειώνοντας δραστικά τον κίνδυνο για μικρογρατζουνιές (swirl marks) και προστατεύοντας τη λάμψη της βαφής.",
   },
   {
+    id: "nano",
     icon: Sparkles,
     title: "Κερί Νανοτεχνολογίας",
     text: "Υδροαπωθητική προστασία που κρατά το αμάξωμα γυαλιστερό για εβδομάδες.",
+    price: "Από 3€",
+    duration: "4 λεπτά",
+    process: [
+      "Εφαρμογή υγρού κεριού με νανοσωματίδια σε καθαρό, ξεβγαλμένο αμάξωμα.",
+      "Τα νανοσωματίδια γεμίζουν τους μικροπόρους της βαφής δημιουργώντας λείο φιλμ.",
+      "Ελαφρύ ξέβγαλμα και στέγνωμα για τέλειο φινίρισμα χωρίς στίγματα.",
+    ],
+    benefits:
+      "Έντονο υδροαπωθητικό εφέ (water beading), προστασία από UV και όξινη βροχή, ευκολότερο επόμενο πλύσιμο και βαθύ γυάλισμα που διαρκεί έως και εβδομάδες.",
   },
   {
+    id: "rims",
     icon: CircleDollarSign,
     title: "Υγρό Ζαντών",
     text: "Ισχυρό καθαριστικό που αφαιρεί σκόνη φρένων από ζάντες και ελαστικά.",
+    price: "Από 2€",
+    duration: "3 λεπτά",
+    process: [
+      "Ψεκασμός ειδικού καθαριστικού σε κρύες ζάντες και ελαστικά.",
+      "Δράση κατά της σκόνης φρένων και των επικαθίσεων σιδήρου.",
+      "Ξέβγαλμα υψηλής πίεσης σε όλη την περιφέρεια της ζάντας.",
+    ],
+    benefits:
+      "Ασφαλές για ζάντες αλουμινίου και βαμμένες ζάντες. Απομακρύνει διαβρωτικά σωματίδια που με τον καιρό χαράζουν και θαμπώνουν το φινίρισμα.",
   },
   {
+    id: "bio",
     icon: Wind,
     title: "Σκούπα & Στέγνωμα",
     text: "Επαγγελματικές σκούπες υψηλής αναρρόφησης και προγράμματα στεγνώματος.",
+    price: "Από 1€",
+    duration: "6 λεπτά",
+    process: [
+      "Σκούπισμα καθισμάτων, πατακιών και χώρου αποσκευών με υψηλή αναρρόφηση.",
+      "Ειδικά στόμια για γωνίες, ράγες καθισμάτων και ταπετσαρία.",
+      "Πρόγραμμα στεγνώματος/φυσητήρα για αμάξωμα και καθρέπτες.",
+    ],
+    benefits:
+      "Καθαρό εσωτερικό χωρίς σκόνη και οσμές, και στέγνωμα χωρίς πανιά, ώστε να μη μένουν άλατα και στίγματα νερού στη βαφή και στα τζάμια.",
   },
 ];
+
+type Service = (typeof services)[number];
+
+function ServiceCard({ service }: { service: Service }) {
+  const [open, setOpen] = useState(false);
+  const { icon: Icon, title, text, price, duration, process, benefits, id } = service;
+
+  const handleSelect = () => {
+    setOpen(false);
+    // Wait for the dialog close animation before scrolling
+    window.setTimeout(() => {
+      document.getElementById("booking")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.dispatchEvent(new CustomEvent<string>(SERVICE_SELECT_EVENT, { detail: id }));
+    }, 150);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <article
+          role="button"
+          tabIndex={0}
+          className="cursor-pointer rounded-2xl border border-border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/60"
+          style={{ boxShadow: "var(--shadow-card)" }}
+        >
+          <Icon className="size-7 text-primary" />
+          <h3 className="mt-3 text-lg font-semibold">{title}</h3>
+          <p className="mt-1.5 text-sm text-muted-foreground">{text}</p>
+          <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+            Δείτε λεπτομέρειες
+          </span>
+        </article>
+      </DialogTrigger>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card text-card-foreground sm:max-w-lg">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary/15">
+              <Icon className="size-6 text-primary" />
+            </span>
+            <DialogTitle className="text-xl font-bold sm:text-2xl">{title}</DialogTitle>
+          </div>
+          <DialogDescription className="pt-2 text-sm text-muted-foreground">
+            {text}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-2 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-semibold">
+            <Euro className="size-3.5 text-accent" /> {price}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-semibold">
+            <Timer className="size-3.5 text-accent" /> Διάρκεια: {duration}
+          </span>
+        </div>
+
+        <div className="mt-4">
+          <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Η διαδικασία βήμα-βήμα
+          </h4>
+          <ol className="mt-3 grid gap-2.5">
+            {process.map((step, index) => (
+              <li key={step} className="flex items-start gap-3 text-sm">
+                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+                  {index + 1}
+                </span>
+                <span className="min-w-0 pt-0.5">{step}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-border bg-secondary/60 p-4">
+          <h4 className="flex items-center gap-2 text-sm font-semibold">
+            <ShieldCheck className="size-4 shrink-0 text-accent" /> Οφέλη για το όχημά σας
+          </h4>
+          <p className="mt-2 text-sm text-muted-foreground">{benefits}</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSelect}
+          className="mt-5 h-12 w-full rounded-full text-base font-semibold text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100"
+          style={{ backgroundImage: "var(--gradient-cta)", boxShadow: "var(--shadow-glow)" }}
+        >
+          Επιλογή για Αίτηση
+        </button>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const reviews = [
   {
@@ -217,6 +359,21 @@ function BookingSection() {
       : [...selectedServices, serviceId];
     setValue("services", next, { shouldValidate: true });
   };
+
+  // Pre-check a service when dispatched from a service card modal CTA
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const serviceId = (event as CustomEvent<string>).detail;
+      if (!serviceId) return;
+      setIsSubmitted(false);
+      const current = (watch("services") || []) as string[];
+      if (!current.includes(serviceId)) {
+        setValue("services", [...current, serviceId], { shouldValidate: true });
+      }
+    };
+    window.addEventListener(SERVICE_SELECT_EVENT, handler);
+    return () => window.removeEventListener(SERVICE_SELECT_EVENT, handler);
+  }, [setValue, watch]);
 
   const onSubmit = (data: BookingFormData) => {
     // TODO: replace with server function when backend is connected
@@ -477,16 +634,8 @@ function Index() {
               Όλα όσα χρειάζεστε για να λάμψει το αυτοκίνητό σας, σε μία στάση.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {services.map(({ icon: Icon, title, text }) => (
-                <article
-                  key={title}
-                  className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/50"
-                  style={{ boxShadow: "var(--shadow-card)" }}
-                >
-                  <Icon className="size-7 text-primary" />
-                  <h3 className="mt-3 text-lg font-semibold">{title}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{text}</p>
-                </article>
+              {services.map((service) => (
+                <ServiceCard key={service.id} service={service} />
               ))}
             </div>
           </div>
