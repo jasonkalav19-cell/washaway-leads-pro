@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import heroImage from "@/assets/hero-wash.jpg";
+import { submitBooking } from "@/lib/booking.functions";
 
 const PHONE_DISPLAY = "21 6070 4593";
 const PHONE_TEL = "+302160704593";
